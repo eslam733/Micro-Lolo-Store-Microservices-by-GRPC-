@@ -64,9 +64,7 @@
         <div class="form-group">
             <label for="product">Select Your Dog</label>
             <select id="product">
-                <option value="1">Golden Retriever ($1200.00)</option>
-                <option value="2">French Bulldog ($2500.00)</option>
-                <option value="3">Husky ($1500.00)</option>
+                <!-- Options will be loaded from backend -->
             </select>
         </div>
         <div class="form-group">
@@ -79,6 +77,22 @@
     </div>
 
     <script>
+        // Load products on page load
+        window.addEventListener('DOMContentLoaded', async () => {
+            const productSelect = document.getElementById('product');
+            try {
+                const response = await fetch('/api/products');
+                const products = await response.json();
+                
+                productSelect.innerHTML = products.map(p => `
+                    <option value="${p.id}">${p.name} ($${p.price.toFixed(2)})</option>
+                `).join('');
+            } catch (err) {
+                console.error('Failed to load products:', err);
+                productSelect.innerHTML = '<option disabled>Error loading dogs</option>';
+            }
+        });
+
         async function placeOrder() {
             const productId = document.getElementById('product').value;
             const quantity = parseInt(document.getElementById('quantity').value);

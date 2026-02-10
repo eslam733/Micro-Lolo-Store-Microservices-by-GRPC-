@@ -32,9 +32,13 @@ function getProduct(call: any, callback: any) {
   }
 }
 
+function listProducts(call: any, callback: any) {
+  callback(null, { products });
+}
+
 function main() {
   const server = new grpc.Server();
-  server.addService(productProto.ProductService.service, { getProduct });
+  server.addService(productProto.ProductService.service, { getProduct, listProducts });
   const port = '0.0.0.0:50051';
   server.bindAsync(port, grpc.ServerCredentials.createInsecure(), (err, port) => {
     if (err) {

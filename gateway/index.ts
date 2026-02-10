@@ -28,7 +28,32 @@ const orderClient = new orderProto.OrderService(
   grpc.credentials.createInsecure()
 );
 
+// Product Service Client (to list animals)
+const PRODUCT_PROTO_PATH = path.join(__dirname, '../proto/product.proto');
+const productPackageDefinition = protoLoader.loadSync(PRODUCT_PROTO_PATH, {
+  keepCase: true,
+  longs: String,
+  enums: String,
+  defaults: true,
+  oneofs: true,
+});
+const productProto: any = grpc.loadPackageDefinition(productPackageDefinition).product;
+const productClient = new productProto.ProductService(
+  'localhost:50051',
+  grpc.credentials.createInsecure()
+);
+
 // REST API for Frontend
+app.get('/api/products', (req, res) => {
+  productClient.listProducts({}, (err: any, response: any) => {
+    if (err) {
+      console.error('gRPC Error:', err);
+      return res.status(500).json({ error: 'Failed to fetch products via gRPC' });
+    }
+    res.json(response.products);
+  });
+});
+
 app.post('/api/order', (req, res) => {
   const { productId, quantity } = req.body;
 
