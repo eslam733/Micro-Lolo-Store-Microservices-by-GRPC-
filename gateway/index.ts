@@ -15,6 +15,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
+app.get('/', (_req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
 const PROTO_LOADER_OPTIONS = {
   keepCase: true,
   longs: String,
