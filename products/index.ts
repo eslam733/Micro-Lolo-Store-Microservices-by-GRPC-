@@ -1,6 +1,7 @@
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
+import { getProduct, listProducts } from '../lib/products';
 
 const PROTO_PATH = path.join(__dirname, '../proto/product.proto');
 
@@ -14,14 +15,8 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 
 const productProto: any = grpc.loadPackageDefinition(packageDefinition).product;
 
-const products = [
-  { id: '1', name: 'Golden Retriever', price: 1200.00 },
-  { id: '2', name: 'French Bulldog', price: 2500.00 },
-  { id: '3', name: 'Husky', price: 1500.00 },
-];
-
-function getProduct(call: any, callback: any) {
-  const product = products.find((p) => p.id === call.request.id);
+function getProductHandler(call: any, callback: any) {
+  const product = getProduct(call.request.id);
   if (product) {
     callback(null, product);
   } else {
@@ -32,21 +27,23 @@ function getProduct(call: any, callback: any) {
   }
 }
 
-function listProducts(call: any, callback: any) {
-  callback(null, { products });
+function listProductsHandler(call: any, callback: any) {
+  callback(null, { products: listProducts() });
 }
 
 function main() {
   const server = new grpc.Server();
-  server.addService(productProto.ProductService.service, { getProduct, listProducts });
+  server.addService(productProto.ProductService.service, {
+    getProduct: getProductHandler,
+    listProducts: listProductsHandler,
+  });
   const port = '0.0.0.0:50051';
-  server.bindAsync(port, grpc.ServerCredentials.createInsecure(), (err, port) => {
+  server.bindAsync(port, grpc.ServerCredentials.createInsecure(), (err, boundPort) => {
     if (err) {
       console.error(err);
       return;
     }
-    console.log(`Product service running at ${port}`);
-    server.start();
+    console.log(`Product service running at ${boundPort}`);
   });
 }
 

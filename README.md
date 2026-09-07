@@ -48,6 +48,36 @@ This project demonstrates a simple microservices architecture using gRPC and Nod
     npm run test:client
     ```
 
+## Deploy on Vercel
+
+Vercel runs this app as a single serverless Express function. It cannot host the long-lived gRPC servers on ports 50051/50052, so production uses the same product and order logic **in-process** (the `VERCEL` environment variable is set automatically).
+
+Local gRPC development is unchanged. To preview the Vercel-style in-process mode locally:
+
+```bash
+npm run start:gateway:vercel
+```
+
+Then open `http://localhost:3000`.
+
+### Deploy from GitHub
+
+1. Push this repository to GitHub (already done if you are on this repo).
+2. Go to [vercel.com/new](https://vercel.com/new) and import the repository.
+3. Leave the defaults: Vercel detects Express from `server.ts` and serves static files from `public/`.
+4. Click **Deploy**.
+
+No build command, output directory, or environment variables are required.
+
+### Deploy with Vercel CLI
+
+```bash
+npm i -g vercel
+vercel
+```
+
+Use `vercel --prod` to promote a preview to production.
+
 ## Learning gRPC with this project
 
 - **Proto Files**: Check the `proto/` directory to see how services and messages are defined.

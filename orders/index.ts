@@ -5,29 +5,22 @@ import path from 'path';
 const ORDER_PROTO_PATH = path.join(__dirname, '../proto/order.proto');
 const PRODUCT_PROTO_PATH = path.join(__dirname, '../proto/product.proto');
 
-// Load Order Proto
-const orderPackageDefinition = protoLoader.loadSync(ORDER_PROTO_PATH, {
+const PROTO_LOADER_OPTIONS = {
   keepCase: true,
   longs: String,
   enums: String,
   defaults: true,
   oneofs: true,
-});
+};
+
+const orderPackageDefinition = protoLoader.loadSync(ORDER_PROTO_PATH, PROTO_LOADER_OPTIONS);
 const orderProto: any = grpc.loadPackageDefinition(orderPackageDefinition).order;
 
-// Load Product Proto (for the client)
-const productPackageDefinition = protoLoader.loadSync(PRODUCT_PROTO_PATH, {
-  keepCase: true,
-  longs: String,
-  enums: String,
-  defaults: true,
-  oneofs: true,
-});
+const productPackageDefinition = protoLoader.loadSync(PRODUCT_PROTO_PATH, PROTO_LOADER_OPTIONS);
 const productProto: any = grpc.loadPackageDefinition(productPackageDefinition).product;
 
-// Product Service Client
 const productClient = new productProto.ProductService(
-  'localhost:50051',
+  process.env.PRODUCTS_GRPC_ADDR || 'localhost:50051',
   grpc.credentials.createInsecure()
 );
 
@@ -36,7 +29,6 @@ function createOrder(call: any, callback: any) {
 
   console.log(`Creating order for product ${product_id} with quantity ${quantity}`);
 
-  // Call Product service to get product details
   productClient.getProduct({ id: product_id }, (err: any, product: any) => {
     if (err) {
       console.error('Error fetching product:', err);
@@ -63,13 +55,12 @@ function main() {
   const server = new grpc.Server();
   server.addService(orderProto.OrderService.service, { createOrder });
   const port = '0.0.0.0:50052';
-  server.bindAsync(port, grpc.ServerCredentials.createInsecure(), (err, port) => {
+  server.bindAsync(port, grpc.ServerCredentials.createInsecure(), (err, boundPort) => {
     if (err) {
       console.error(err);
       return;
     }
-    console.log(`Order service running at ${port}`);
-    server.start();
+    console.log(`Order service running at ${boundPort}`);
   });
 }
 
